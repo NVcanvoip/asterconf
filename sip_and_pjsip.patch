@@ -1,0 +1,44 @@
+--- res/res_pjsip_nat.c	2023-05-23 21:10:22.000000000 +0700
++++ res/res_pjsip_nat.c_new	2023-09-29 08:28:23.097254316 +0700
+@@ -444,7 +444,8 @@
+ 			pjsip_method_cmp(&cseq->method, &pjsip_register_method)) {
+ 			/* We can only rewrite the URI when one is present */
+ 			if (uri || (uri = nat_get_contact_sip_uri(tdata))) {
+-				pj_strdup2(tdata->pool, &uri->host, ast_sockaddr_stringify_host(&transport_state->external_signaling_address));
++//				pj_strdup2(tdata->pool, &uri->host, ast_sockaddr_stringify_host(&transport_state->external_signaling_address));
++				pj_strdup2(tdata->pool, &uri->host, transport->external_signaling_address);
+ 				if (transport->external_signaling_port) {
+ 					uri->port = transport->external_signaling_port;
+ 					ast_debug(4, "Re-wrote Contact URI port to %d\n", uri->port);
+@@ -454,7 +455,8 @@
+ 
+ 		/* Update the via header if relevant */
+ 		if ((tdata->msg->type == PJSIP_REQUEST_MSG) && (via || (via = pjsip_msg_find_hdr(tdata->msg, PJSIP_H_VIA, NULL)))) {
+-			pj_strdup2(tdata->pool, &via->sent_by.host, ast_sockaddr_stringify_host(&transport_state->external_signaling_address));
++//			pj_strdup2(tdata->pool, &via->sent_by.host, ast_sockaddr_stringify_host(&transport_state->external_signaling_address));
++			pj_strdup2(tdata->pool, &via->sent_by.host, transport->external_signaling_address);
+ 			if (transport->external_signaling_port) {
+ 				via->sent_by.port = transport->external_signaling_port;
+ 			}
+
+
+--- channels/chan_sip.c	2023-05-23 21:10:22.000000000 +0700
++++ channels/chan_sip.c_new	2023-09-29 08:27:19.349629478 +0700
+@@ -14412,7 +14412,8 @@
+ 	} else {
+ 		ast_string_field_build(p, our_contact, "<%s:%s%s%s;transport=%s>",
+ 			use_sips ? "sips" : "sip", user, ast_strlen_zero(user) ? "" : "@",
+-			ast_sockaddr_stringify_remote(&p->ourip), ast_str_to_lower(transport));
++//			ast_sockaddr_stringify_remote(&p->ourip), ast_str_to_lower(transport));
++			sip_cfg.realm, ast_str_to_lower(transport));
+ 	}
+ }
+ 
+@@ -14460,6 +14461,7 @@
+ 	if (ast_strlen_zero(p->fromdomain)) {
+ 		d = ast_sockaddr_stringify_host_remote(&p->ourip);
+ 	}
++
+ 	if (p->owner) {
+ 		connected_id = ast_channel_connected_effective_id(p->owner);
+ 
